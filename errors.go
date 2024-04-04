@@ -42,6 +42,10 @@ func Unwrap(err error) error {
 }
 
 func Wrap(err error) error {
+	if err == nil {
+		return nil
+	}
+
 	pc, file, line, ok := runtime.Caller(1)
 	if !ok {
 		return err
