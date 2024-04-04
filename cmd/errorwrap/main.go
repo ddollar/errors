@@ -1,13 +1,14 @@
 package main
 
 import (
-	"errors"
 	"fmt"
 	"os"
 	"os/exec"
 	"path/filepath"
 	"regexp"
 	"strings"
+
+	"github.com/ddollar/errors"
 )
 
 func main() {
@@ -17,7 +18,7 @@ func main() {
 }
 
 func run() error {
-	return filepath.Walk(".", func(path string, info os.FileInfo, err error) error {
+	err := filepath.Walk(".", func(path string, info os.FileInfo, err error) error {
 		if err != nil {
 			return err
 		}
@@ -34,7 +35,7 @@ func run() error {
 			return nil
 		}
 
-		fmt.Printf("processing: %s\n", path)
+		fmt.Printf("processing: %s\n", path) //nolint:forbidigo
 
 		if err := rewriteErrors(path); err != nil {
 			return err
@@ -46,6 +47,8 @@ func run() error {
 
 		return nil
 	})
+
+	return errors.Wrap(err)
 }
 
 func rewriteErrors(path string) error {
@@ -71,12 +74,12 @@ var doubleWrap = regexp.MustCompile(`errors\.WithStack\(errors\.(.*?)\)\)`)
 func wrapFile(path string) error {
 	info, err := os.Stat(path)
 	if err != nil {
-		return err
+		return errors.Wrap(err)
 	}
 
 	data, err := os.ReadFile(path)
 	if err != nil {
-		return err
+		return errors.Wrap(err)
 	}
 
 	lines := strings.Split(string(data), "\n")
@@ -93,7 +96,7 @@ func wrapFile(path string) error {
 	}
 
 	if err := os.WriteFile(path, []byte(strings.Join(lines, "\n")), info.Mode()); err != nil {
-		return err
+		return errors.Wrap(err)
 	}
 
 	if data, err := exec.Command("goimports", "-w", path).CombinedOutput(); err != nil {

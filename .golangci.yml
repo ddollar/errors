@@ -1,0 +1,23 @@
+issues:
+  max-issues-per-linter: 0
+  max-same-issues: 0
+
+linters:
+  enable:
+    - forbidigo
+    - gomodguard
+    - wrapcheck
+
+linters-settings:
+  errcheck:
+    exclude-functions:
+      - io.WriteString
+  exhaustruct:
+    ignore:
+      - sync.Mutex
+  forbidigo:
+    forbid:
+      - '^fmt\.Print.*$'
+  wrapcheck:
+    ignorePackageGlobs:
+    ignoreSigs:

@@ -3,29 +3,8 @@ package errors
 import (
 	stderrors "errors"
 	"fmt"
-	"io"
 	"runtime"
-	"strconv"
 )
-
-var New = stderrors.New
-
-var Errorf = fmt.Errorf
-
-type wrappedError struct {
-	error
-	frame Frame
-}
-
-type ErrorTracer interface {
-	ErrorTrace() []Frame
-}
-
-type Frame struct {
-	Func string
-	File string
-	Line int
-}
 
 func Cause(err error) error {
 	switch t := err.(type) {
@@ -34,6 +13,32 @@ func Cause(err error) error {
 	default:
 		return err
 	}
+}
+
+func Errorf(format string, args ...interface{}) error {
+	return Wrap(fmt.Errorf(format, args...))
+}
+
+func Is(err, target error) bool {
+	return stderrors.Is(err, target)
+}
+
+func Join(errs ...error) error {
+	wrapped := make([]error, len(errs))
+
+	for i := range errs {
+		wrapped[i] = Wrap(errs[i])
+	}
+
+	return stderrors.Join(wrapped...)
+}
+
+func New(text string) error {
+	return Wrap(stderrors.New(text))
+}
+
+func Unwrap(err error) error {
+	return stderrors.Unwrap(err)
 }
 
 func Wrap(err error) error {
@@ -58,38 +63,4 @@ func Wrap(err error) error {
 	}
 
 	return we
-}
-
-func (we wrappedError) Cause() error {
-	return we.error
-}
-
-func (we wrappedError) ErrorTrace() []Frame {
-	t := []Frame{we.frame}
-
-	if et, ok := we.error.(ErrorTracer); ok {
-		t = append(et.ErrorTrace(), t...)
-	}
-
-	return t
-}
-
-func (f Frame) Format(s fmt.State, verb rune) {
-	switch verb {
-	case 's':
-		switch {
-		case s.Flag('+'):
-			io.WriteString(s, f.Func)
-			io.WriteString(s, "\n  ")
-			io.WriteString(s, f.File)
-		default:
-			io.WriteString(s, f.File)
-		}
-	case 'd':
-		io.WriteString(s, strconv.Itoa(f.Line))
-	case 'v':
-		f.Format(s, 's')
-		io.WriteString(s, ":")
-		f.Format(s, 'd')
-	}
 }
