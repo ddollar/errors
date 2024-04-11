@@ -5,11 +5,11 @@ type wrappedError struct {
 	frame Frame
 }
 
-func (we wrappedError) Cause() error {
+func (we *wrappedError) Cause() error {
 	return we.error
 }
 
-func (we wrappedError) ErrorTrace() []Frame {
+func (we *wrappedError) ErrorTrace() []Frame {
 	t := []Frame{we.frame}
 
 	if et, ok := we.error.(ErrorTracer); ok {
@@ -19,6 +19,6 @@ func (we wrappedError) ErrorTrace() []Frame {
 	return t
 }
 
-func (we wrappedError) Unwrap() error {
+func (we *wrappedError) Unwrap() error {
 	return we.error
 }

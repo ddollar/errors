@@ -10,6 +10,8 @@ func Cause(err error) error {
 	switch t := err.(type) {
 	case wrappedError:
 		return t.error
+	case *wrappedError:
+		return t.error
 	default:
 		return err
 	}
@@ -57,7 +59,7 @@ func Wrap(err error) error {
 		fnc = fn.Name()
 	}
 
-	we := wrappedError{
+	we := &wrappedError{
 		error: err,
 		frame: Frame{
 			Func: fnc,
