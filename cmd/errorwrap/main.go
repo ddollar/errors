@@ -69,7 +69,7 @@ func rewriteErrors(path string) error {
 	return nil
 }
 
-var doubleWrap = regexp.MustCompile(`errors\.WithStack\(errors\.(.*?)\)\)`)
+var doubleWrap = regexp.MustCompile(`errors\.Wrap\(errors\.(.*?)\)\)`)
 
 func wrapFile(path string) error {
 	info, err := os.Stat(path)
@@ -123,7 +123,7 @@ func wrapLine(line string) (string, error) {
 
 	for i, arg := range args {
 		if wrappable(arg) {
-			args[i] = fmt.Sprintf("errors.WithStack(%s)", arg)
+			args[i] = fmt.Sprintf("errors.Wrap(%s)", arg)
 		}
 	}
 
